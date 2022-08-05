@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+
+
+    <title>Todo App</title>
+    <style>
+.hidden{
+    display:none;
+}
+.btn-closed {
+    color: red;
+    background-color: red;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+<header class="d-flex justify-content-center py-3">
+      <ul class="nav nav-pills">
+        <li class="nav-item"><a href="#" class="nav-link active" aria-current="page">Home</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">Features</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">Pricing</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">FAQs</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+      </ul>
+    </header>
+    <div style="margin-top: 20px" class="row g-5">
+        <div class="col-md-2">
+            Todo List
+        </div>
+        <div class="col-md-10">
+            <div style="margin-bottom: 40px">
+                <h1> my Todo </h1>
+                <form id="form">
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Description</label>
+                        <input name="description" type="text" class="form-control" id="description"
+                               aria-describedby="descriptionHelp">
+                        <div id="emailHelp" class="form-text">enter your todo description here</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+            <div id="error" class="hidden">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    Ouch ! Something's went wrong
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+
+            <ul id="todos" class="list-group w-auto">
+                {% for i in data %}
+
+
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+
+                        <input class="checkbox-completed form-check-input me-1" type="checkbox" data-id="{{ i.id }}"
+                               id="Checkbox" {% if i.completed %} checked {% endif %} />
+                        <label class="form-check-label" for="firstCheckbox"></label>
+                        <div class="ms-2 me-auto">
+
+                            <div class="fw-bold">{{ i.description }} </div>
+                            we can type something
+
+                        </div>
+
+                        <span class="badge bg-primary rounded-pill">No.{{ i.id }}</span>
+                        <button type="button" class="btn-close btn-closed" id="delete" data-id="{{ i.id }}"
+                                aria-label="Close"></button>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+
+
+
+</div>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+<script>
+    const checkboxes = document.querySelectorAll('#Checkbox');
+    for (let i =0; i < checkboxes.length; i++) {
+        const checkbox= checkboxes[i];
+        checkbox.onchange = function(e){
+        const newCompleted = e.target.checked;
+        const todoId = e.target.dataset.id;
+        fetch('todos/'+ todoId +'/set-completed',{
+            method: 'POST',
+            body: JSON.stringify({
+                'completed': newCompleted
+            }),
+            headers: {
+                'Content-Type':'application/json'
+            }
+        })
+            .then(function(){
+                document.getElementById('error').className='hidden';
+            })
+        .catch(function(){
+        document.getElementById('error').className='';
+    })
+        }
+    }
+
+        const deletes = document.querySelectorAll('#delete');
+        for (let i =0; i < deletes.length; i++) {
+        const deleted = deletes[i];
+        deleted.onclick = function(e){
+            console.log('events',e);
+            const todoId = e.target.dataset['id'];
+                    fetch('todos/'+ todoId,{
+            method: 'DELETE'
+        })
+            .then(function(){
+                document.getElementById('error').className='hidden';
+            })
+        .catch(function(){
+        document.getElementById('error').className='';
+    })
+            location.reload();
+            return false;
+}}
+
+
+
+
+document.getElementById('form').onsubmit = function(e){
+    e.preventDefault();
+    fetch('todos/create',{
+        method:'POST',
+        body: JSON.stringify({
+            'description': document.getElementById('description').value
+        }),
+        headers:{
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(function (response){
+            return response.json();
+        })
+        .then(function (jsonResponse){
+            console.log(jsonResponse);
+            const LItem = document.createElement('li');
+            LItem.innerHTML = jsonResponse['description']
+            document.getElementById('todos').appendChild(LItem).className='list-group-item d-flex justify-content-between align-items-start';
+            document.getElementById('error').className='hidden';
+        })
+    .catch(function(){
+        document.getElementById('error').className='';
+    })
+    }
+</script>
+</body>
+</html>
