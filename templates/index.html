@@ -32,12 +32,27 @@
     </header>
     <div style="margin-top: 20px" class="row g-5">
         <div class="col-md-2">
-            Todo List
+            <h4>Todo List</h4>
+            <ul class="todolist" id="todolist">
+            <form id="form-todolist">
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">name</label>
+                        <input name="description" type="text" class="form-control" id="name"
+                               aria-describedby="descriptionHelp">
+                        <div id="emailHelp" class="form-text">enter the name of the todolist</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+                {% for i in todolist %}
+                    <li><a href="/lists/{{ i.id }}">{{ i.name }}</a></li>
+                {% endfor %}
+            </ul>
         </div>
         <div class="col-md-10">
             <div style="margin-bottom: 40px">
-                <h1> myTodo App </h1>
-                <form id="form">
+                <h1> {{ active_list.name }} </h1>
+                <form id="form-todo">
                     <div class="mb-3">
                         <label for="exampleInputEmail1" class="form-label">Description</label>
                         <input name="description" type="text" class="form-control" id="description"
@@ -93,7 +108,7 @@
         checkbox.onchange = function(e){
         const newCompleted = e.target.checked;
         const todoId = e.target.dataset.id;
-        fetch('todos/'+ todoId +'/set-completed',{
+        fetch('/todos/'+ todoId +'/set-completed',{
             method: 'POST',
             body: JSON.stringify({
                 'completed': newCompleted
@@ -117,7 +132,7 @@
         deleted.onclick = function(e){
             console.log('events',e);
             const todoId = e.target.dataset['id'];
-                    fetch('todos/'+ todoId,{
+                    fetch('/todos/'+ todoId,{
             method: 'DELETE'
         })
             .then(function(){
@@ -133,12 +148,13 @@
 
 
 
-document.getElementById('form').onsubmit = function(e){
+document.getElementById('form-todo').onsubmit = function(e){
     e.preventDefault();
-    fetch('todos/create',{
+    fetch('/todos/create',{
         method:'POST',
         body: JSON.stringify({
-            'description': document.getElementById('description').value
+            'description': document.getElementById('description').value,
+            'list_id': {{ active_list.id }}
         }),
         headers:{
             'Content-Type': 'application/json'
@@ -152,6 +168,32 @@ document.getElementById('form').onsubmit = function(e){
             const LItem = document.createElement('li');
             LItem.innerHTML = jsonResponse['description']
             document.getElementById('todos').appendChild(LItem).className='list-group-item d-flex justify-content-between align-items-start';
+            document.getElementById('error').className='hidden';
+        })
+    .catch(function(){
+        document.getElementById('error').className='';
+    })
+    }
+
+    document.getElementById('form-todolist').onsubmit = function(e){
+    e.preventDefault();
+    fetch('/todos/createlist',{
+        method:'POST',
+        body: JSON.stringify({
+            'name': document.getElementById('name').value
+        }),
+        headers:{
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(function (response){
+            return response.json();
+        })
+        .then(function (jsonResponse){
+            console.log(jsonResponse);
+            const LItem = document.createElement('li');
+            LItem.innerHTML = jsonResponse['name']
+            document.getElementById('todolist').appendChild(LItem).className='li';
             document.getElementById('error').className='hidden';
         })
     .catch(function(){
