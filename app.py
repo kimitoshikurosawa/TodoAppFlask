@@ -5,10 +5,18 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MiNot_or@localhost:5432/todoapp'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:MiNot_or@localhost:5432/todoapp'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://alxuser:MiNot_or@localhost:5432/todoapp'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+
+class Todos(db.Model):
+    __tablename__ = 'todo'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    todos = db.relationship('Todo', backref='todos', lazy=True)
 
 
 class Todo(db.Model):
@@ -16,6 +24,7 @@ class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(), nullable=False)
     completed = db.Column(db.Boolean, nullable=False, default=False)
+    todos_id = db.Column(db.Integer, db.ForeignKey('todos.id'), nullable=False)
 
     def __repr__(self):
         return f'<Todo {self.id} {self.description}>'
